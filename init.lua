@@ -1,40 +1,3 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-
-Kickstart.nvim is *not* a distribution.
-
-Kickstart.nvim is a template for your own configuration.
-  The goal is that you can read every line of code, top-to-bottom, understand
-  what your configuration is doing, and modify it to suit your needs.
-
-  Once you've done that, you should start exploring, configuring and tinkering to
-  explore Neovim!
-
-  If you don't know anything about Lua, I recommend taking some time to read through
-  a guide. One possible example:
-  - https://learnxinyminutes.com/docs/lua/
-
-  And then you can explore or search through `:help lua-guide`
-
-
-Kickstart Guide:
-
-I have left several `:help X` comments throughout the init.lua
-You should run that command and read that help section for more information.
-
-In addition, I have some `NOTE:` items throughout the file.
-These are for you, the reader to help understand what is happening. Feel free to delete
-them once you know what you're doing, but they should serve as a guide for when you
-are first encountering a few different constructs in your nvim config.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now :)
---]]
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
@@ -72,6 +35,9 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  -- Show context
+  'romgrk/nvim-treesitter-context',
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -102,6 +68,12 @@ require('lazy').setup({
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
 
+      -- Path completion
+      "hrsh7th/cmp-path",
+
+      -- Buffer completion
+      "hrsh7th/cmp-buffer",
+
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
     },
@@ -114,6 +86,7 @@ require('lazy').setup({
     'lewis6991/gitsigns.nvim',
     opts = {
       -- See `:help gitsigns.txt`
+      current_line_blame = true,
       signs = {
         add = { text = '+' },
         change = { text = '~' },
@@ -130,11 +103,11 @@ require('lazy').setup({
   },
 
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    -- Catppuccin theme
+    'catppuccin/nvim',
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'catppuccin-mocha'
     end,
   },
 
@@ -145,7 +118,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'onedark',
+        theme = 'catppuccin-mocha',
         component_separators = '|',
         section_separators = '',
       },
@@ -157,9 +130,14 @@ require('lazy').setup({
     'lukas-reineke/indent-blankline.nvim',
     -- Enable `lukas-reineke/indent-blankline.nvim`
     -- See `:help indent_blankline.txt`
+    main = "ibl",
     opts = {
-      char = '┊',
-      show_trailing_blankline_indent = false,
+      whitespace = {
+        remove_blankline_trail = false,
+      },
+      scope = {
+        enabled = false,
+      },
     },
   },
 
@@ -203,7 +181,7 @@ require('lazy').setup({
   --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {})
 
 -- [[ Setting options ]]
@@ -215,9 +193,35 @@ vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
--- Enable mouse mode
-vim.o.mouse = 'a'
+-- Confirm to save
+vim.opt.confirm = true
+
+--Show tabs and trailing spaces
+vim.opt.list = true
+
+-- Hide markup
+vim.opt.conceallevel = 3
+-- Don't hide markup for json
+
+-- Fix markdown indentation settings
+vim.g.markdown_recommended_style = 0
+
+vim.opt.cmdheight = 0
+-- Fix macro recording for cmdheight option
+vim.cmd [[ autocmd RecordingEnter * set cmdheight=1 ]]
+vim.cmd [[ autocmd RecordingLeave * set cmdheight=0 ]]
+
+--Wrap whole words
+vim.opt.linebreak = true
+
+-- Scrolloff
+vim.opt.scrolloff = 8
+
+-- Mouse mode
+vim.o.mouse = ''
+vim.opt.mousescroll = "ver:0,hor:0"
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -236,6 +240,8 @@ vim.o.smartcase = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
+
+vim.opt.colorcolumn = "80"
 
 -- Decrease update time
 vim.o.updatetime = 250
@@ -268,6 +274,36 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
+-- Preserve register when pasting over selection
+vim.keymap.set("x", "<leader>p", [["_dP]])
+
+--Spelling
+vim.keymap.set("n", "<F12>", ":set spell!<CR>", { noremap = true, silent = true })
+vim.keymap.set("i", "<F12>", "<C-O>:set spell!<CR>", { noremap = true, silent = true })
+
+-- LazyGit
+vim.keymap.set("n", "<leader>gl", ":LazyGit<CR>", { noremap = true, silent = true, desc = "Open LazyGit" })
+
+--Window movement
+vim.keymap.set("n", "<leader>h", "<C-w>h", { noremap = true, silent = true, desc = "Move to left pane" })
+vim.keymap.set("n", "<leader>j", "<C-w>j", { noremap = true, silent = true, desc = "Move to lower pane" })
+vim.keymap.set("n", "<leader>k", "<C-w>k", { noremap = true, silent = true, desc = "Move to upper pane" })
+vim.keymap.set("n", "<leader>l", "<C-w>l", { noremap = true, silent = true, desc = "Move to right pane" })
+vim.keymap.set("n", "<leader>x", "<C-w>q", { noremap = true, silent = true, desc = "Quit buffer" })
+
+--Splits
+vim.keymap.set("n", "<leader>=", "<C-w>=", { noremap = true, silent = true, desc = "Make panes equal" })
+
+--Trailing Whitespace
+vim.keymap.set(
+  "n",
+  "<leader>rs",
+  ":let _s=@/ <Bar> :%s/\\s\\+$//e <Bar> :let @/=_s <Bar> :nohl <Bar> :unlet _s <CR>",
+  { noremap = true, silent = true }
+)
+
+vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
@@ -277,6 +313,12 @@ require('telescope').setup {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
       },
+    },
+  },
+  pickers = {
+    buffers = {
+      sort_mru = true,
+      ignore_current_buffer = true
     },
   },
 }
@@ -300,7 +342,9 @@ vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { des
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
 vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
+vim.keymap.set('n', '<leader>sm', require('telescope.builtin').marks, { desc = '[S]earch [M]arks' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
+vim.keymap.set('n', '<leader>ss', require('telescope.builtin').lsp_document_symbols, { desc = '[S]earch [S]ymbols' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -309,7 +353,7 @@ require('nvim-treesitter.configs').setup {
   ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-  auto_install = false,
+  auto_install = true,
 
   highlight = { enable = true },
   indent = { enable = true },
@@ -372,7 +416,7 @@ require('nvim-treesitter.configs').setup {
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+vim.keymap.set('n', '<leader>dl', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
@@ -489,7 +533,7 @@ cmp.setup {
     ['<C-Space>'] = cmp.mapping.complete {},
     ['<CR>'] = cmp.mapping.confirm {
       behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
+      select = false,
     },
     ['<Tab>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
@@ -513,8 +557,21 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = 'path' },
+    { name = 'buffer' },
   },
 }
+
+-- Configure LSP for bitbake
+vim.api.nvim_create_autocmd({ "BufEnter" }, {
+  pattern = { "*.bb' '*.bbappend' '*.bbclass' '*.inc' 'conf/*.conf" },
+  callback = function()
+    vim.lsp.start({
+      name = "bitbake",
+      cmd = { "bitbake-language-server" }
+    })
+  end,
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
