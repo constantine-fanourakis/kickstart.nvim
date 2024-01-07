@@ -202,7 +202,7 @@ vim.opt.confirm = true
 vim.opt.list = true
 
 -- Hide markup
-vim.opt.conceallevel = 3
+vim.opt.conceallevel = 0
 -- Don't hide markup for json
 
 -- Fix markdown indentation settings
