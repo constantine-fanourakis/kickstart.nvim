@@ -103,6 +103,11 @@ require('lazy').setup({
   },
 
   {
+    "folke/todo-comments.nvim", dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {highlight = {comments_only = false,}}
+  },
+
+  {
     -- Catppuccin theme
     'catppuccin/nvim',
     priority = 1000,
